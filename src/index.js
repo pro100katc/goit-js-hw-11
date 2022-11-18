@@ -1,28 +1,24 @@
 import './sass/main.scss';
-import PixabeyService from './js/pixabeyService';
-// import articlesTpl from './templates/articles.hbs';
-import { Notify } from 'notiflix';
-import LoadMoreBtn from './js/loadMore';
-import renderGallery from './js/renderImages';
-import SimpleLightbox from 'simplelightbox';
+import ApiService from './js/apiService';
+import photoCardTpl from './partials/photo-card.hbs';
+import LoadButton from './js/load-button';
+import { error } from '@pnotify/core';
+import '@pnotify/core/dist/BrightTheme.css';
+import '@pnotify/core/dist/PNotify.css';
 
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
-const refs = {
-  searchForm: document.querySelector('.search-form'),
-  galleryContainer: document.querySelector('.js-gallery-container'),
-};
-
-const apiService = new PixabeyService();
-const loadMoreBtn = new LoadMoreBtn({
+const apiService = new ApiService();
+const loadButton = new LoadButton({
   selector: '[data-action="load-more"]',
   hidden: true,
 });
 
-const gallery = new SimpleLightbox('.gallery__link', {});
+const refs = {
+  searchForm: document.querySelector('.search-form'),
+  galleryContainer: document.querySelector('.gallery'),
+};
 
 refs.searchForm.addEventListener('submit', onSearch);
-loadMoreBtn.refs.button.addEventListener('click', fetchImages);
+loadButton.refs.button.addEventListener('click', onLoadMore);
 
 function onSearch(e) {
   e.preventDefault();
@@ -30,47 +26,57 @@ function onSearch(e) {
   apiService.query = e.currentTarget.elements.query.value;
 
   if (apiService.query === '') {
-    return Notify.failure('Enter some text');
+    return error({
+      text: 'You must enter query parameters!',
+    });
   }
 
-  loadMoreBtn.show();
+  loadButton.show();
+  clearGaleryContainer();
 
+  window.addEventListener('keydown', onEnterKeyPress);
   apiService.resetPage();
-  clearGalleryMarkup();
-  fetchImages();
+  loadPhotos();
+  elementScrollIntoView();
 }
 
-function fetchImages() {
-  loadMoreBtn.disable();
+function onLoadMore() {
+  loadPhotos();
+  elementScrollIntoView();
+}
 
-  apiService.fetchImage().then(images => {
-    if (images.length === 0) {
-      Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-      loadMoreBtn.hide();
+function loadPhotos() {
+  loadButton.disable();
+  apiService.fetchArticles().then(photos => {
+    console.log(photos);
+    if (photos.length === 0) {
+      return error({
+        text: 'Please enter a more specific query!',
+      });
     }
-
-    const markup = renderGallery(images);
-    refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
-
-    gallery.refresh();
-    loadMoreBtn.enable();
-    scroll();
+    photosMarkup(photos);
+    loadButton.enable();
   });
 }
 
-function clearGalleryMarkup() {
+function photosMarkup(photos) {
+  refs.galleryContainer.insertAdjacentHTML('beforeend', photoCardTpl(photos));
+}
+
+function clearGaleryContainer() {
   refs.galleryContainer.innerHTML = '';
 }
 
-function scroll() {
-  const { height: cardHeight } = document
-    .querySelector('.gallery')
-    .firstElementChild.getBoundingClientRect();
+function onEnterKeyPress(event) {
+  if (event.code === 'Enter') {
+    onSearch();
+  }
+}
 
-  window.scrollBy({
-    top: cardHeight * 0.5,
+function elementScrollIntoView() {
+  const element = document.getElementById('gallery_box');
+  element.scrollIntoView({
     behavior: 'smooth',
+    block: 'end',
   });
 }
