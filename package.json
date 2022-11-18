@@ -1,21 +1,23 @@
 {
   "name": "goit-js-hw-11",
   "version": "1.0.0",
-  "description": "This project was created with Parcel. For familiarization and setting additional features [refer to documentation](https://parceljs.org/).",
-  "main": "index.js",
+  "description": "",
+  "homepage": "https://pro100katc.github.io/goit-js-hw-11",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "parcel src/*.html --open",
+    "build": "parcel build src/*.html --public-url /goit-js-hw-11/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pro100katc/goit-js-hw-11.git"
+   "url": "git+https://github.com/goitacademy/parcel-project-template.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/pro100katc/goit-js-hw-11/issues"
   },
-  "homepage": "https://pro100katc.github.io/goit-js-hw-11",
   "dependencies": {
     "@parcel/transformer-sass": "^2.8.0",
     "axios": "^1.1.3",
